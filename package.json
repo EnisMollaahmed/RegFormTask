@@ -1,0 +1,15 @@
+{
+  "name": "regformtask",
+  "version": "1.0.0",
+  "description": "Client-server web app (Node.js + MySQL)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "mysql2": "^3.3.0"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}
