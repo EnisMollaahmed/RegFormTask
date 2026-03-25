@@ -198,7 +198,7 @@ async function requestHandler(req, res) {
   const routeMap = routes[method];
   if (routeMap && routeMap.has(pathname)) {
     try {
-      const body = method === 'POST' ? await parseJSONBody(req) : null;
+      const body = (method === 'POST' || method === 'PUT') ? await parseJSONBody(req) : null;
       const handler = routeMap.get(pathname);
       await handler(req, res, body);
     } catch (err) {
@@ -218,9 +218,11 @@ async function requestHandler(req, res) {
 }
 
 const server = http.createServer(requestHandler);
-server.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`Server listening on http://localhost:${PORT}`);
+  });
+}
 
 module.exports = server;
 
