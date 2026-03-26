@@ -9,9 +9,9 @@ const mysql = require('mysql2/promise');
 
 const {
   DB_HOST = 'localhost',
-  DB_USER = 'root',
-  DB_PASSWORD = '',
-  DB_NAME = 'regform_db',
+  DB_USER = 'node_user',
+  DB_PASSWORD = 'password123',
+  DB_NAME = 'registration_app',
   DB_PORT = 3306,
   DB_CONNECTION_LIMIT = 10
 } = process.env;

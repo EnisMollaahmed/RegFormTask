@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Profile</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="top">
+    <nav>
+      <a href="/">Home</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="msg" class="hidden"></section>
+
+    <section id="profile" class="view">
+      <h2>Profile</h2>
+      <form id="form-profile">
+        <label>Email<input name="email" type="email" disabled></label>
+        <label>Names<input name="names" type="text" required></label>
+        <label>New Password (leave empty to keep)<input name="password" type="password"></label>
+        <button type="submit">Save</button>
+      </form>
+      <button id="btn-logout">Logout</button>
+    </section>
+  </main>
+
+  <script>
+    function el(id){return document.getElementById(id);}    
+    function showMsg(text, timeout=4000){
+      const m = el('msg'); m.textContent = text; m.classList.remove('hidden'); clearTimeout(m._t); m._t = setTimeout(()=>m.classList.add('hidden'), timeout);
+    }
+
+    async function fetchUser(){
+      try{
+        const res = await fetch('/api/user', { credentials: 'same-origin' });
+        if (res.status !== 200) { window.location.href = '/'; return; }
+        const j = await res.json();
+        const f = el('form-profile');
+        f.elements.email.value = j.email || '';
+        f.elements.names.value = j.names || '';
+      } catch(err){ console.error(err); window.location.href = '/'; }
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      fetchUser();
+      el('form-profile').addEventListener('submit', async (ev)=>{
+        ev.preventDefault();
+        const f = ev.target; const form = Object.fromEntries(new FormData(f).entries());
+        const payload = { names: form.names };
+        if (form.password) payload.password = form.password;
+        try{
+          const res = await fetch('/api/user', { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          const j = await res.json().catch(()=>({}));
+          if (res.status === 200) { alert('Profile updated'); fetchUser(); } else { showMsg(j.error || `Error (${res.status})`); }
+        }catch(err){ console.error(err); showMsg('Update failed'); }
+      });
+
+      el('btn-logout').addEventListener('click', async ()=>{
+        await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+        window.location.href = '/';
+      });
+    });
+  </script>
+</body>
+</html>

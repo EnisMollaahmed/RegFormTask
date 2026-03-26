@@ -34,6 +34,7 @@ async function postJSON(path, body) {
   const res = await fetch(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
     body: JSON.stringify(body)
   });
   const j = await res.json().catch(() => ({}));
@@ -43,7 +44,7 @@ async function postJSON(path, body) {
 // Nav buttons
 el('nav-register').addEventListener('click', () => { showSection('register'); loadCaptcha(); });
 el('nav-login').addEventListener('click', () => showSection('login'));
-el('nav-profile').addEventListener('click', () => { showSection('profile'); loadProfile(); });
+el('nav-profile').addEventListener('click', () => { window.location.href = '/profile.html'; });
 
 // Register form
 el('form-register').addEventListener('submit', async (ev) => {
@@ -71,9 +72,8 @@ el('form-login').addEventListener('submit', async (ev) => {
   const form = Object.fromEntries(new FormData(f).entries());
   const { status, body } = await postJSON('/api/login', { email: form.email, password: form.password });
   if (status === 200) {
-    showMsg('Login successful');
-    showSection('profile');
-    loadProfile();
+    // on success redirect to profile page so browser has a fresh load and cookies
+    window.location.href = '/profile.html';
   } else {
     showMsg(body && body.error ? body.error : `Error (${status})`);
   }
@@ -82,7 +82,7 @@ el('form-login').addEventListener('submit', async (ev) => {
 // Profile load
 async function loadProfile() {
   try {
-    const res = await fetch('/api/profile');
+    const res = await fetch('/api/user', { credentials: 'same-origin' });
     if (res.status !== 200) { showSection('login'); return; }
     const j = await res.json();
     const f = el('form-profile');
@@ -98,8 +98,8 @@ el('form-profile').addEventListener('submit', async (ev) => {
   const form = Object.fromEntries(new FormData(f).entries());
   const payload = { names: form.names };
   if (form.password) payload.password = form.password;
-  const res = await fetch('/api/profile', {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  const res = await fetch('/api/user', {
+    method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
   });
   const j = await res.json().catch(() => ({}));
   if (res.status === 200) showMsg('Profile updated'); else showMsg(j.error || `Error (${res.status})`);
@@ -107,7 +107,8 @@ el('form-profile').addEventListener('submit', async (ev) => {
 
 // Logout
 el('btn-logout').addEventListener('click', async () => {
-  await fetch('/api/logout', { method: 'POST' });
+  await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+  // server clears auth cookie; clear client-side sid if present
   document.cookie = 'sid=; Path=/; Max-Age=0';
   showSection('login');
   showMsg('Logged out');
